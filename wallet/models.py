@@ -8,7 +8,7 @@ class Wallet(models.Model):
     owned_by = models.OneToOneField(User, on_delete=models.CASCADE)
     status = models.CharField(max_length=100, choices=WALLET_STATUS_CHOICES,
                               default="disabled")
-    balance = models.BigIntegerField(default=0)
+    balance = models.PositiveIntegerField(default=0)
     enabled_at = models.DateTimeField(auto_now=False, blank=True, null=True)
     disabled_at = models.DateTimeField(auto_now=False, blank=True, null=True)
 
@@ -22,7 +22,7 @@ class Transaction(models.Model):
                               default=None,
                               null=True, blank=True)
     reference_id = models.TextField(max_length=50, unique=True)
-    amount = models.BigIntegerField(default=0)
+    amount = models.PositiveIntegerField(default=0)
     transaction_type = models.CharField(max_length=100,
                                         choices=TRANSACTION_TYPE_CHOICES,
                                         default=None, null=True, blank=True)

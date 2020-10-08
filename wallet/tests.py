@@ -25,7 +25,7 @@ class TestWalletView(APITestCase):
         }
 
         response = self.client.get(self.url, **self.headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, expected_response)
 
     def test_wallet_view_when_enabled(self):
@@ -39,7 +39,7 @@ class TestWalletView(APITestCase):
         self.wallet.status = "enabled"
         self.wallet.save()
         response = self.client.post(self.url, **self.headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data["status"], "fail")
 
     def test_enabling_wallet_when_disabled(self):
@@ -49,7 +49,7 @@ class TestWalletView(APITestCase):
 
     def test_disabling_wallet_when_disabled(self):
         response = self.client.patch(self.url, **self.headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data["status"], "fail")
 
     def test_disabling_wallet_when_enabled(self):
@@ -101,12 +101,12 @@ class TestDepositWithdrawViews(APITestCase):
             reference_id=self.request_data["reference_id"], wallet=self.wallet, transaction_by=self.dummyuser)
         deposit_response = self.client.post(
             self.deposit_url, **self.headers, data=self.request_data)
-        self.assertEqual(deposit_response.status_code, 401)
+        self.assertEqual(deposit_response.status_code, 400)
         self.assertEqual(deposit_response.data["status"], "fail")
         withdraw_response = self.client.post(
             self.withdraw_url, **self.headers, data=self.request_data)
         self.assertEqual(withdraw_response.data["status"], "fail")
-        self.assertEqual(withdraw_response.status_code, 401)
+        self.assertEqual(withdraw_response.status_code, 400)
 
 
 class TestInitializeAccountView(APITestCase):
@@ -129,5 +129,5 @@ class TestInitializeAccountView(APITestCase):
     def test_init_fail(self):
         response = self.client.post(
             self.url)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data["status"], "fail")

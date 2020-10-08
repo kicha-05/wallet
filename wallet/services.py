@@ -18,7 +18,11 @@ def deposit_withdraw_virtual_money(wallet, amount, reference_id, transaction_typ
         if transaction_type == "deposit":
             wallet.balance += amount
         else:
+            if wallet.balance < amount:
+                raise ValueError("Insufficient Balance in wallet")
             wallet.balance -= amount
+        if amount < 0:
+            raise ValueError("Amount should be a positive integer")
         wallet.save()
         transaction_details = Transaction.objects.create(
             status="success",
@@ -30,8 +34,8 @@ def deposit_withdraw_virtual_money(wallet, amount, reference_id, transaction_typ
             reference_id=reference_id
         )
         return True, transaction_details
-    except Exception as e:
-        return False, None
+    except Exception as exc:
+        return False, exc
 
 
 def initialize_account(customer_xid):

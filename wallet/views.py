@@ -36,7 +36,7 @@ class WalletView(APIView):
             "data": {
                 "error": error
             }
-        }, status=401)
+        }, status=400)
 
     def post(self, request):
         try:
@@ -60,7 +60,7 @@ class WalletView(APIView):
             "data": {
                 "error": error
             }
-        }, status=401)
+        }, status=400)
 
     def patch(self, request):
         try:
@@ -84,7 +84,7 @@ class WalletView(APIView):
             "data": {
                 "error": error
             }
-        }, status=401)
+        }, status=400)
 
 
 class DepositWithdrawVirtualMoney(APIView):
@@ -117,6 +117,8 @@ class DepositWithdrawVirtualMoney(APIView):
                             trans_details.transaction_type: trans_serializer.data
                         }
                     }, status=201)
+                else:
+                    error = str(trans_details)
             except ValueError as e:
                 error = str(e)
             except ObjectDoesNotExist:
@@ -128,7 +130,7 @@ class DepositWithdrawVirtualMoney(APIView):
             "data": {
                 "error": error
             }
-        }, status=401)
+        }, status=400)
 
 
 class InitializeAccount(APIView):
@@ -153,4 +155,4 @@ class InitializeAccount(APIView):
                 "error": error
             },
             "status": "fail"
-        }, status=401)
+        }, status=400)
