@@ -1,7 +1,7 @@
 from .models import *
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
-
+from django.db import IntegrityError
 
 def enable_or_disable_wallet(user, set_to):
     wallet = user.wallet
@@ -34,7 +34,7 @@ def deposit_withdraw_virtual_money(wallet, amount, reference_id, transaction_typ
             reference_id=reference_id
         )
         return True, transaction_details
-    except Exception as exc:
+    except (ValueError, IntegrityError) as exc:
         return False, exc
 
 
