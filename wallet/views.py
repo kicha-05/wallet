@@ -1,9 +1,6 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.generics import ListCreateAPIView, get_object_or_404, \
-    RetrieveUpdateDestroyAPIView
-from .models import *
+from .models import Wallet, Transaction
 from .serializers import *
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.permissions import IsAuthenticated
@@ -11,6 +8,7 @@ from django.utils import timezone
 from .services import deposit_withdraw_virtual_money, \
     enable_or_disable_wallet, initialize_account
 from django.db import IntegrityError
+from django.urls import resolve
 
 
 class WalletView(APIView):
@@ -89,10 +87,11 @@ class WalletView(APIView):
         }, status=401)
 
 
-class DepositVirtualMoney(APIView):
+class DepositWithdrawVirtualMoney(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
+        transaction_type = resolve(request.path_info).url_name
         serializer = TransactionSerializer(data=request.data)
         if serializer.is_valid():
             try:
@@ -108,7 +107,7 @@ class DepositVirtualMoney(APIView):
                         "Transaction with the reference_id already exists")
                 trans_success, trans_details = deposit_withdraw_virtual_money(
                     wallet, int(amount), reference_id,
-                    transaction_type="deposit")
+                    transaction_type=transaction_type)
                 if trans_success:
                     trans_serializer = TransactionModelSerializer(
                         trans_details)
@@ -120,50 +119,8 @@ class DepositVirtualMoney(APIView):
                     }, status=201)
             except ValueError as e:
                 error = str(e)
-        else:
-            error = serializer.errors
-        return Response({
-            "status": "fail",
-            "data": {
-                "error": error
-            }
-        }, status=401)
-
-
-class WithdrawVirtualMoney(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request):
-        serializer = TransactionSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                wallet = request.user.wallet
-                if not wallet.status == "enabled":
-                    raise ValueError("Wallet is disabled")
-                reference_id = request.POST.get('reference_id')
-                amount = request.POST.get('amount')
-                if wallet.balance < int(amount):
-                    raise ValueError(
-                        "Insufficient Balance in wallet")
-                transactions = Transaction.objects.filter(
-                    reference_id=reference_id)
-                if transactions:
-                    raise ValueError(
-                        "Transaction with the reference_id already exists")
-                trans_success, trans_details = deposit_withdraw_virtual_money(
-                    wallet, int(amount), reference_id,
-                    transaction_type="withdraw")
-                if trans_success:
-                    trans_serializer = TransactionModelSerializer(
-                        trans_details)
-                    return Response({
-                        "status": "success",
-                        "data": {
-                            trans_details.transaction_type: trans_serializer.data
-                        }
-                    }, status=201)
-            except ValueError as e:
-                error = str(e)
+            except ObjectDoesNotExist:
+                error = "Wallet for the user not initiated"
         else:
             error = serializer.errors
         return Response({
